@@ -55,7 +55,7 @@ Rel(ml, lake, "Обучает модели на данных", "Spark API, Parqu
 Rel(ml, dwh, "Подключается к витринам для фич", "JDBC/SQL API")
 Rel(bizanal, bi, "Строит BI-отчеты", "BI UI (Web Client)")
 Rel(mldev, ml, "Создает ML-модели", "Python, Jupyter Notebook")
-Rel(client, bi_legacy, "Использует легаси BI-отчеты", "BI UI (Power Builder)")
+Rel(bizanal, bi_legacy, "Использует легаси BI-отчеты", "BI UI (Power Builder)")
 Rel(bi_legacy, dwh_legacy, "Читает данные для отчетов", "JDBC/ODBC, SQL")
 
 @enduml
