@@ -1,0 +1,63 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title DFD-схема
+
+Person(client, "Клиенты", "Используют сервисы доменов")
+Person(analyst, "Аналитики", "Строят отчеты и принимают решения")
+Person(mldev, "ML/DS", "Разрабатывают и обучают модели")
+
+System(ai, "ИИ-домен", "Сервисы на базе ИИ, хранение транзакционных данных")
+System(pharma, "Фармацевтика", "Продажи, склады и учет лекарств")
+System(production, "Производство техники", "Производственные данные")
+System(fintech, "Финтех", "Финансовые транзакции и платежи")
+System(med, "Лечебный домен", "Медицинские записи, пациенты")
+System(internal, "Внутренний домен", "Кросс-запросы и интеграция между доменами")
+
+System_Boundary(platform, "Data Platform") {
+    System(kafka, "Kafka", "Событийный транспорт")
+    System(stream, "Stream Processor", "Обработка CDC/событий")
+    System(lake, "Data Lake / Lakehouse", "Хранение сырых и обработанных данных")
+    System(dwh, "DWH", "Новый DWH для аналитики")
+    System(dwh_legacy, "Legacy DWH", "MS SQL 2008")
+    System(orch, "Orchestrator", "Airflow/Dagster")
+    System(catalog, "Data Catalog", "DataHub/Lineage")
+}
+
+System_Boundary(analytics, "Аналитика") {
+    System(bi, "BI Portal", "Power BI/Tableau")
+    System(ml, "ML Platform", "Jupyter/Feature Store/Spark")
+    System(bi_legacy, "Legacy BI", "Power Builder для старых отчетов")
+}
+
+Rel(client, ai, "Запросы/данные через API")
+Rel(client, fintech, "Финансовые операции")
+Rel(client, med, "Медицинские запросы")
+
+Rel(ai, kafka, "Публикует события")
+Rel(pharma, kafka, "Публикует события")
+Rel(production, kafka, "Публикует события")
+Rel(fintech, kafka, "Публикует события")
+Rel(med, kafka, "Публикует события")
+Rel(internal, kafka, "Кросс-доменные события")
+
+Rel(kafka, stream, "Стриминг событий")
+Rel(stream, lake, "Запись в Lake")
+Rel(lake, orch, "Оркестрация пайплайнов")
+Rel(orch, dwh, "Формирование витрин")
+Rel(orch, catalog, "Регистрация lineage")
+Rel(lake, catalog, "Регистрация датасетов")
+Rel(dwh, catalog, "Регистрация витрин")
+Rel(dwh_legacy, catalog, "Legacy lineage (read-only)")
+
+Rel(bi, dwh, "Чтение аналитических данных")
+Rel(ml, lake, "Обучение моделей на данных")
+Rel(ml, dwh, "Использование витрин для фичей")
+Rel(bi_legacy, dwh_legacy, "Получение старых данных")
+
+Rel(analyst, bi, "Строит отчеты")
+Rel(mldev, ml, "Разрабатывает модели")
+Rel(client, bi_legacy, "Представление старой отчетности")
+
+@enduml
