@@ -58,6 +58,6 @@ Rel(bi_legacy, dwh_legacy, "Получение старых данных", "SQL 
 
 Rel(analyst, bi, "Строит отчеты", "BI UI")
 Rel(mldev, ml, "Разрабатывает модели", "Python / Jupyter Notebook")
-Rel(client, bi_legacy, "Представление старой отчетности", "BI UI")
+Rel(analyst, bi_legacy, "Представление старой отчетности", "BI UI")
 
 @enduml

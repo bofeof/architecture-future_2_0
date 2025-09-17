@@ -2,7 +2,7 @@
 
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-Person(bizanal, "Аналитическая служба", "Строит отчеты и принимает решения")
+Person(analyst, "Аналитическая служба", "Строит отчеты и принимает решения")
 Person(mldev, "ML/DS служба", "Разрабатывает и обучает модели")
 Person(client, "Клиент", "Использует сервисы домена через API")
 
@@ -52,8 +52,8 @@ Rel(ml, lake, "Обучение моделей на данных", "Iceberg API 
 Rel(ml, dwh, "Использование витрин для фичей", "SQL / JDBC")
 Rel(bi_legacy, dwh_legacy, "Получение старых данных", "SQL / JDBC")
 
-Rel(bizanal, bi, "Строит отчеты", "BI UI")
+Rel(analyst, bi, "Строит отчеты", "BI UI")
 Rel(mldev, ml, "Разрабатывает модели", "Python / Jupyter Notebook")
-Rel(client, bi_legacy, "Представление старой отчетности", "BI UI")
+Rel(analyst, bi_legacy, "Представление старой отчетности", "BI UI")
 
 @enduml
