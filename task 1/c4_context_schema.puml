@@ -8,6 +8,7 @@ Person(client, "Клиент", "Использует сервисы домена
 
 System_Boundary(domain, "Домен N - структура для любого домена бизнеса") {
     Container(gateway, "API Gateway", "Kong", "Единая точка входа в API домена")
+    Container(bff, "BFF","", "ФЛК слой для проверки и трансформации данных")
     Container(api, "API Service", "REST API", "Операционные сервисы домена")
     SystemDb(db, "Operational Database", "Postgres", "Транзакционные данные домена")
     Container(cdc, "CDC Connector", "Debezium", "Фиксирует изменения в БД")
@@ -31,7 +32,8 @@ System_Boundary(analytics, "Аналитика и потребители") {
 }
 
 Rel(client, gateway, "Запросы к API", "HTTPS REST")
-Rel(gateway, api, "Маршрутизирует запросы", "HTTP REST")
+Rel(gateway, bff, "Маршрутизирует запросы", "HTTP REST")
+Rel(bff, api, "ФЛК, трансформация, проверки запросов", "HTTP REST")
 Rel(api, db, "Чтение/запись транзакций", "JDBC/SQL")
 Rel(db, cdc, "Фиксирует изменения", "Postgres WAL")
 Rel(cdc, kafka, "Публикует CDC события", "Kafka Connect API")
