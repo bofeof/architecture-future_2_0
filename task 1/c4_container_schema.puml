@@ -1,0 +1,61 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(analyst, "Аналитическая служба", "Строит отчеты и принимает решения")
+Person(mldev, "ML/DS служба", "Разрабатывает и обучает модели")
+Person(client, "Клиент", "Использует сервисы домена через API")
+
+System_Boundary(domain, "Домен N - структура для любого домена бизнеса") {
+    Container(gateway, "API Gateway", "Kong", "Единая точка входа в API домена")
+    Container(bff, "BFF","", "ФЛК слой для проверки и трансформации данных")
+    Container(api, "API Service", "REST API", "Операционные сервисы домена")
+    SystemDb(db, "Operational Database", "Postgres", "Транзакционные данные домена")
+    Container(cdc, "CDC Connector", "Debezium", "Фиксирует изменения в БД")
+    Container(producer, "Event Producer", "Kafka Producer", "Публикует бизнес-события")
+}
+
+System_Boundary(platform, "Data Platform (Open Source)") {
+    Container(kafka, "Kafka", "Apache Kafka", "Транспорт событий между доменами и платформой")
+    Container(stream, "Stream Processor", "Apache Flink", "Потоковая обработка CDC и событий")
+    Container(lake, "Data Lakehouse", "MinIO + Apache Iceberg", "Сырая и обработанная зона данных")
+    Container(dwh, "DWH", "ClickHouse", "Аналитическая база для витрин и BI")
+    Container(dwh_legacy, "Legacy DWH", "MS SQL Server 2008", "Историческое хранилище, старые отчеты")
+    Container(orch, "Orchestrator", "Apache Airflow", "Оркестрация пайплайнов ETL/ELT")
+    Container(catalog, "Data Catalog", "DataHub", "Регистрация Data Products, управление метаданными и lineage")
+}
+
+System_Boundary(analytics, "Аналитика и потребители") {
+    Container(bi, "BI Portal", "Metabase", "Витрины и отчеты")
+    Container(ml, "ML Platform", "Jupyter + Feature Store + Flink/Spark", "Обучение и использование моделей")
+    Container(bi_legacy, "Legacy BI", "Power Builder", "Доступ к Legacy DWH")
+}
+
+Rel(client, gateway, "Запросы к API", "HTTPS REST")
+Rel(gateway, bff, "Маршрутизирует запросы", "HTTP REST")
+Rel(bff, api, "ФЛК, трансформация, проверки запросов", "HTTP REST")
+Rel(api, db, "Чтение/запись транзакций", "JDBC/SQL")
+Rel(db, cdc, "Фиксирует изменения", "Postgres WAL")
+Rel(cdc, kafka, "Публикует CDC события", "Kafka Connect API")
+Rel(api, producer, "Формирует бизнес-события", "Kafka Producer API")
+Rel(producer, kafka, "Публикует события в топики", "Kafka Protocol")
+
+Rel(kafka, stream, "Читает события CDC и бизнес-события", "Kafka Consumer API")
+Rel(stream, lake, "Запись в Lakehouse", "Flink Sink / Iceberg API")
+Rel(orch, lake, "Оркестрация пайплайнов", "Airflow DAGs / Spark Submit")
+Rel(orch, dwh, "Формирование витрин", "ClickHouse SQL / JDBC")
+Rel(orch, catalog, "Передача lineage процессов", "REST API")
+Rel(lake, catalog, "Регистрация датасетов", "REST API")
+Rel(dwh, catalog, "Регистрация витрин", "REST API")
+Rel(dwh_legacy, catalog, "Регистрация legacy-датасетов (read-only)", "REST API")
+
+Rel(bi, dwh, "Чтение аналитических данных", "SQL / JDBC / BI Connector")
+Rel(ml, lake, "Обучение моделей на данных", "Iceberg API / Parquet Reader")
+Rel(ml, dwh, "Использование витрин для фичей", "SQL / JDBC")
+Rel(bi_legacy, dwh_legacy, "Получение старых данных", "SQL / JDBC")
+
+Rel(analyst, bi, "Строит отчеты", "BI UI")
+Rel(mldev, ml, "Разрабатывает модели", "Python / Jupyter Notebook")
+Rel(analyst, bi_legacy, "Представление старой отчетности", "BI UI")
+
+@enduml
